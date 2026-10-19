@@ -1,0 +1,29 @@
+# created-by: streamlit-in-workspaces; skill-version=1.0.0
+definition_version: 2
+entities:
+  Collections_Dashboard:
+    type: streamlit
+    meta:
+      use_mixins:
+        - streamlit_shared
+    identifier:
+      name: COLLECTIONS_COCKPIT
+      database: STREAMLIT-CORTEX-20261018
+      schema: PUBLIC
+mixins:
+  streamlit_shared:
+    artifacts:
+      - pyproject.toml
+      - streamlit_app.py
+      - queries.py
+      - .streamlit/config.toml
+    title: Collections Dashboard
+    query_warehouse: COMPUTE_WH
+    compute_pool: SYSTEM_COMPUTE_POOL_CPU
+    meta:
+      role: IRONCLAD_LAB_ROLE
+    grants:
+      - privilege: USAGE
+        role: IRONCLAD_LAB_ROLE
+        with_grant_option: true
+    main_file: streamlit_app.py

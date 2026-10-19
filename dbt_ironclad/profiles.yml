@@ -1,0 +1,12 @@
+dbt_ironclad:
+  target: dev
+  outputs:
+    dev:
+      type: snowflake
+      account: ""
+      user: ""
+      role: IRONCLAD_LAB_ROLE   # see README 3a; any role that owns the database works
+      database: '"STREAMLIT-CORTEX-20261018"'
+      warehouse: COMPUTE_WH
+      schema: BRONZE
+      threads: 8

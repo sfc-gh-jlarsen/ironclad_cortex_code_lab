@@ -1,0 +1,12 @@
+# created-by: streamlit-in-workspaces; skill-version=1.0.0
+definition_version: 2
+entities:
+  transfer_planner:
+    type: streamlit
+    # Warehouse and compute pool are set in App Settings (not hard-coded here).
+    main_file: streamlit_app.py
+    artifacts:
+      - pyproject.toml
+      - streamlit_app.py
+      - queries.py
+      - .streamlit/config.toml

@@ -1,0 +1,67 @@
+version: 2
+
+models:
+  - name: stg_sap__po_items
+    columns:
+      - name: po_line_id
+        tests: [unique, not_null]
+      - name: po_number
+        tests:
+          - relationships: {to: ref('stg_sap__po_headers'), field: po_number}
+  - name: stg_sap__po_headers
+    columns:
+      - name: po_number
+        tests: [unique, not_null]
+      - name: supplier_id
+        tests:
+          - relationships: {to: ref('stg_sap__suppliers'), field: supplier_id}
+  - name: stg_sap__goods_receipts
+    columns:
+      - name: po_line_id
+        tests:
+          - relationships: {to: ref('stg_sap__po_items'), field: po_line_id}
+  - name: stg_sap__sales_order_items
+    columns:
+      - name: sales_order_line_id
+        tests: [unique, not_null]
+      - name: sales_order_id
+        tests:
+          - relationships: {to: ref('stg_sap__sales_order_headers'), field: sales_order_id}
+  - name: stg_sap__delivery_items
+    columns:
+      - name: sales_order_line_id
+        tests:
+          - relationships: {to: ref('stg_sap__sales_order_items'), field: sales_order_line_id}
+  - name: stg_sap__billing_items
+    columns:
+      - name: delivery_line_id
+        tests:
+          - relationships: {to: ref('stg_sap__delivery_items'), field: delivery_line_id}
+  - name: stg_sap__ar_postings
+    columns:
+      - name: ar_document_id
+        tests: [unique, not_null]
+      - name: billing_doc_id
+        tests:
+          - relationships: {to: ref('stg_sap__billing_headers'), field: billing_doc_id}
+  - name: stg_sap__payments
+    columns:
+      - name: payment_id
+        tests: [unique, not_null]
+      - name: ar_document_id
+        tests:
+          - unique
+          - relationships: {to: ref('stg_sap__ar_postings'), field: ar_document_id}
+  - name: stg_sap__customers
+    columns:
+      - name: customer_id
+        tests: [unique, not_null]
+      - name: customer_segment
+        tests: [not_null]
+  - name: stg_portal__quality_inspections
+    columns:
+      - name: inspection_lot_id
+        tests: [unique, not_null]
+      - name: inspection_result
+        tests:
+          - accepted_values: {values: ['ACCEPT', 'CONDITIONAL', 'REJECT']}

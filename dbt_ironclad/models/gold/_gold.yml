@@ -1,0 +1,116 @@
+version: 2
+
+models:
+  - name: fct_order_fulfillment
+    description: Order-to-cash fulfillment at sales order line grain (OTIF, backorders, downstream disputes and open AR).
+    columns:
+      - name: sales_order_line_id
+        tests: [unique, not_null]
+      - name: customer_id
+        tests:
+          - relationships: {to: ref('gld_dim_customer'), field: customer_id}
+      - name: material_id
+        tests:
+          - relationships: {to: ref('gld_dim_material'), field: material_id}
+      - name: plant_id
+        tests:
+          - relationships: {to: ref('gld_dim_plant'), field: plant_id}
+      - name: order_date
+        tests:
+          - relationships: {to: ref('gld_dim_date'), field: date_day}
+
+  - name: fct_ar_open_items_aging
+    description: Open customer invoices as of the latest loaded business day with aging buckets and dispute flags.
+    columns:
+      - name: ar_document_id
+        tests: [unique, not_null]
+      - name: customer_id
+        tests:
+          - not_null
+          - relationships: {to: ref('gld_dim_customer'), field: customer_id}
+      - name: aging_bucket
+        tests:
+          - accepted_values: {values: ['0 Current', '1 1-30', '2 31-60', '3 61-90', '4 90+']}
+
+  - name: fct_ar_daily_balance
+    description: Daily AR balance per customer. DSO = SUM(ar_balance_usd) / (SUM(sales_trailing_90d_usd)/90) at any aggregate level.
+    tests:
+      - dbt_utils_unique_combination: {columns: ['balance_date', 'customer_id']}
+    columns:
+      - name: customer_id
+        tests:
+          - relationships: {to: ref('gld_dim_customer'), field: customer_id}
+      - name: balance_date
+        tests:
+          - not_null
+          - relationships: {to: ref('gld_dim_date'), field: date_day}
+
+  - name: fct_supplier_scorecard_monthly
+    description: Monthly supplier performance by plant - OTD, OTIF, lead time, quality rejects, invoice exceptions, risk.
+    tests:
+      - dbt_utils_unique_combination: {columns: ['month_start_date', 'supplier_id', 'plant_id']}
+    columns:
+      - name: supplier_id
+        tests:
+          - relationships: {to: ref('gld_dim_supplier'), field: supplier_id}
+
+  - name: fct_po_price_variance
+    description: Contract vs PO vs invoice price variance at PO line grain.
+    columns:
+      - name: po_line_id
+        tests: [unique, not_null]
+      - name: supplier_id
+        tests:
+          - relationships: {to: ref('gld_dim_supplier'), field: supplier_id}
+
+  - name: fct_inventory_position_daily
+    description: Daily on-hand vs reorder point with inbound pipeline (open POs, in-transit transfers).
+    tests:
+      - dbt_utils_unique_combination: {columns: ['snapshot_date', 'plant_id', 'material_id']}
+    columns:
+      - name: stock_health
+        tests:
+          - accepted_values: {values: ['Critical', 'Below ROP', 'Excess', 'Healthy']}
+
+  - name: fct_transfer_vs_reorder
+    description: For each below-ROP raw material day - best sister-plant transfer vs primary-supplier reorder, plus what was actually done.
+    tests:
+      - dbt_utils_unique_combination: {columns: ['snapshot_date', 'plant_id', 'material_id']}
+    columns:
+      - name: recommended_action
+        tests:
+          - accepted_values: {values: ['TRANSFER', 'REORDER']}
+      - name: actual_action
+        tests:
+          - accepted_values: {values: ['TRANSFER', 'PO', 'NONE']}
+      - name: donor_plant_id
+        tests:
+          - relationships: {to: ref('gld_dim_plant'), field: plant_id}
+
+  - name: gld_dim_customer
+    columns:
+      - name: customer_id
+        tests: [unique, not_null]
+      - name: customer_segment
+        tests:
+          - accepted_values: {values: ['OEM', 'Replacement Dealer', 'Commercial Fleet']}
+  - name: gld_dim_supplier
+    columns:
+      - name: supplier_id
+        tests: [unique, not_null]
+  - name: gld_dim_material
+    columns:
+      - name: material_id
+        tests: [unique, not_null]
+  - name: gld_dim_plant
+    columns:
+      - name: plant_id
+        tests: [unique, not_null]
+  - name: gld_dim_date
+    columns:
+      - name: date_day
+        tests: [unique, not_null]
+  - name: gld_dim_customer_history
+    columns:
+      - name: customer_version_id
+        tests: [unique, not_null]

@@ -1,0 +1,31 @@
+name: 'dbt_ironclad'
+version: '1.0.0'
+profile: 'dbt_ironclad'
+
+model-paths: ["models"]
+snapshot-paths: ["snapshots"]
+macro-paths: ["macros"]
+test-paths: ["tests"]
+
+# Database name contains hyphens: the quotes live inside the name in profiles.yml/sources,
+# so dbt must not add its own
+quoting:
+  database: false
+  schema: false
+  identifier: false
+
+vars:
+  dim_date_start: '2025-01-01'
+  dim_date_end: '2027-12-31'
+
+models:
+  dbt_ironclad:
+    bronze:
+      +schema: BRONZE
+      +materialized: view
+    silver:
+      +schema: SILVER
+      +materialized: table
+    gold:
+      +schema: GOLD
+      +materialized: table

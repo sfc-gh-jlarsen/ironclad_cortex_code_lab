@@ -1,0 +1,42 @@
+# --- dbt build artifacts (compiled SQL, run results, logs) ---
+dbt_ironclad/target/
+dbt_ironclad/logs/
+dbt_ironclad/dbt_packages/
+dbt_ironclad/package-lock.yml
+target/
+logs/
+dbt_packages/
+.user.yml
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+.ipynb_checkpoints/
+.pytest_cache/
+
+# --- Secrets / local connection config (never commit) ---
+.env
+.env.*
+*.pem
+*.p8
+*.key
+rsa_key*
+.snowflake/
+connections.toml
+config.toml
+!**/.streamlit/config.toml
+.streamlit/secrets.toml
+**/.streamlit/secrets.toml
+
+# --- Live-demo scratch output (prompts save exploration SQL here) ---
+explore/
+
+# --- OS / editor ---
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp

@@ -1,0 +1,99 @@
+version: 2
+
+sources:
+  - name: sap
+    description: SAP ERP extracts (MM, SD, FI) landed by the generator.
+    database: '"STREAMLIT-CORTEX-20261018"'
+    quoting: {database: false, schema: false, identifier: false}
+    schema: RAW
+    freshness:
+      warn_after: {count: 2, period: day}
+      error_after: {count: 4, period: day}
+    tables:
+      - name: T001
+        description: Company codes
+      - name: T001W
+        description: Plants
+      - name: MARA
+        description: Material master (incl. description)
+      - name: MARC
+        description: Plant-level material settings (reorder point, safety stock)
+      - name: LFA1
+        description: Supplier master
+      - name: EINA
+        description: Purchasing info records (contract price and lead time per supplier/material)
+      - name: KNA1
+        description: Customer master
+      - name: EKKO
+        description: Purchase order headers
+        loaded_at_field: CREATED_TS
+      - name: EKPO
+        description: Purchase order items
+      - name: EKBE
+        description: PO history - goods receipts (VGABE=1)
+      - name: RBKP
+        description: Supplier invoice headers
+      - name: RSEG
+        description: Supplier invoice items
+      - name: MARD
+        description: Daily storage location stock snapshot
+      - name: VBAK
+        description: Sales order headers
+        loaded_at_field: ERZET
+      - name: VBAP
+        description: Sales order items
+      - name: LIKP
+        description: Delivery headers
+      - name: LIPS
+        description: Delivery items
+      - name: VBRK
+        description: Billing document headers
+      - name: VBRP
+        description: Billing document items
+      - name: BSID_BSAD
+        description: Customer AR line items (invoice postings)
+      - name: PAYMENTS
+        description: Incoming customer payments with clearing reference
+
+  - name: wms
+    description: Warehouse management system - inter-plant stock transfers.
+    database: '"STREAMLIT-CORTEX-20261018"'
+    quoting: {database: false, schema: false, identifier: false}
+    schema: RAW
+    tables:
+      - name: WMS_STOCK_TRANSFERS
+        loaded_at_field: CREATED_TS
+        freshness:
+          warn_after: {count: 3, period: day}
+      - name: WMS_TRANSFER_RECEIPTS
+      - name: WMS_TRANSFER_LANES
+
+  - name: supplier_portal
+    description: Supplier portal / quality system and third-party risk feed (JSON payloads).
+    database: '"STREAMLIT-CORTEX-20261018"'
+    quoting: {database: false, schema: false, identifier: false}
+    schema: RAW
+    tables:
+      - name: SUP_QUALITY_INSPECTIONS
+        loaded_at_field: INGESTED_AT
+        freshness:
+          warn_after: {count: 3, period: day}
+      - name: SUP_RISK_SCORES
+
+  - name: collections
+    description: Collections tool - dispute event log.
+    database: '"STREAMLIT-CORTEX-20261018"'
+    quoting: {database: false, schema: false, identifier: false}
+    schema: RAW
+    tables:
+      - name: AR_DISPUTES
+
+  - name: reference
+    database: '"STREAMLIT-CORTEX-20261018"'
+    quoting: {database: false, schema: false, identifier: false}
+    schema: RAW
+    tables:
+      - name: FX_RATES
+        description: Daily USD reference rates (units of TO_CURRENCY per 1 USD)
+      - name: GEN_LOAD_LOG
+        description: Generator bookkeeping - which business days are loaded

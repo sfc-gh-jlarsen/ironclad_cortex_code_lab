@@ -1,0 +1,113 @@
+version: 2
+
+models:
+  - name: dim_date
+    columns:
+      - name: date_day
+        tests: [unique, not_null]
+  - name: dim_plant
+    columns:
+      - name: plant_id
+        tests: [unique, not_null]
+  - name: dim_material
+    columns:
+      - name: material_id
+        tests: [unique, not_null]
+      - name: material_class
+        tests:
+          - accepted_values: {values: ['Raw Material', 'Finished Tire']}
+  - name: dim_supplier
+    columns:
+      - name: supplier_id
+        tests: [unique, not_null]
+  - name: dim_customer
+    columns:
+      - name: customer_id
+        tests: [unique, not_null]
+  - name: fx_rates_daily
+    tests:
+      - dbt_utils_unique_combination: {columns: ['rate_date', 'currency_code']}
+    columns:
+      - name: units_per_usd
+        tests: [not_null]
+
+  - name: fct_purchase_order_lines
+    columns:
+      - name: po_line_id
+        tests: [unique, not_null]
+      - name: supplier_id
+        tests:
+          - not_null
+          - relationships: {to: ref('dim_supplier'), field: supplier_id}
+      - name: material_id
+        tests:
+          - relationships: {to: ref('dim_material'), field: material_id}
+      - name: plant_id
+        tests:
+          - relationships: {to: ref('dim_plant'), field: plant_id}
+      - name: net_value_usd
+        tests: [not_null]
+      - name: po_line_status
+        tests:
+          - accepted_values:
+              values: ['Overdue', 'Open', 'Partially Received', 'Received - Awaiting Invoice', 'Invoiced']
+  - name: fct_goods_receipts
+    columns:
+      - name: material_document
+        tests: [unique, not_null]
+      - name: po_line_id
+        tests:
+          - relationships: {to: ref('fct_purchase_order_lines'), field: po_line_id}
+  - name: fct_supplier_invoice_lines
+    columns:
+      - name: supplier_invoice_line_id
+        tests: [unique, not_null]
+      - name: po_line_id
+        tests:
+          - relationships: {to: ref('fct_purchase_order_lines'), field: po_line_id}
+  - name: fct_stock_transfers
+    columns:
+      - name: transfer_id
+        tests: [unique, not_null]
+      - name: from_plant_id
+        tests:
+          - relationships: {to: ref('dim_plant'), field: plant_id}
+      - name: to_plant_id
+        tests:
+          - relationships: {to: ref('dim_plant'), field: plant_id}
+  - name: fct_inventory_daily
+    tests:
+      - dbt_utils_unique_combination: {columns: ['snapshot_date', 'plant_id', 'material_id']}
+  - name: fct_sales_order_lines
+    columns:
+      - name: sales_order_line_id
+        tests: [unique, not_null]
+      - name: customer_id
+        tests:
+          - relationships: {to: ref('dim_customer'), field: customer_id}
+      - name: fulfillment_status
+        tests:
+          - accepted_values: {values: ['Past Due', 'Open', 'Backordered', 'Delivered']}
+  - name: fct_billing_lines
+    columns:
+      - name: billing_line_id
+        tests: [unique, not_null]
+      - name: sales_order_line_id
+        tests:
+          - relationships: {to: ref('fct_sales_order_lines'), field: sales_order_line_id}
+  - name: fct_disputes
+    columns:
+      - name: dispute_id
+        tests: [unique, not_null]
+      - name: current_status
+        tests:
+          - accepted_values: {values: ['OPEN', 'IN_REVIEW', 'RESOLVED']}
+  - name: fct_ar_items
+    columns:
+      - name: ar_document_id
+        tests: [unique, not_null]
+      - name: customer_id
+        tests:
+          - relationships: {to: ref('dim_customer'), field: customer_id}
+      - name: invoice_amount_usd
+        tests: [not_null]
